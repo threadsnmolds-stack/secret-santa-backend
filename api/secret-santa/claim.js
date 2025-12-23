@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     }
 
     const mutation = `
-      mutation DraftOrderCreate($input: DraftOrderInput!) {
+      mutation CreateDraftOrder($input: DraftOrderInput!) {
         draftOrderCreate(input: $input) {
           draftOrder {
             id
@@ -29,15 +29,14 @@ export default async function handler(req, res) {
 
     const variables = {
       input: {
+        note: "Secret Santa 2025 – Threads n Molds",
         lineItems: [
           {
             title: "🎅 Secret Santa Gift",
             quantity: 1,
-            price: PRICE
+            originalUnitPrice: PRICE
           }
-        ],
-        currencyCode: "INR",
-        note: "Secret Santa 2025 – Threads n Molds"
+        ]
       }
     };
 
@@ -49,39 +48,29 @@ export default async function handler(req, res) {
           "Content-Type": "application/json",
           "X-Shopify-Access-Token": TOKEN
         },
-        body: JSON.stringify({ query: mutation, variables })
+        body: JSON.stringify({
+          query: mutation,
+          variables
+        })
       }
     );
 
-    const data = await response.json();
+    const json = await response.json();
 
-    // 🚨 Shopify-level errors
-    if (data.errors) {
-      console.error("Shopify GraphQL Errors:", data.errors);
-      return res.status(500).json({
-        success: false,
-        error: data.errors
-      });
+    const errors = json?.data?.draftOrderCreate?.userErrors;
+    if (errors && errors.length > 0) {
+      return res.status(400).json({ success: false, errors });
     }
 
-    const result = data?.data?.draftOrderCreate;
-
-    // 🚨 Draft order user errors
-    if (!result || result.userErrors.length > 0) {
-      return res.status(400).json({
-        success: false,
-        error: result?.userErrors || "Draft order creation failed"
-      });
-    }
+    const invoiceUrl =
+      json?.data?.draftOrderCreate?.draftOrder?.invoiceUrl;
 
     return res.status(200).json({
       success: true,
-      checkout_url: result.draftOrder.invoiceUrl,
+      checkout_url: invoiceUrl,
       price: PRICE
     });
-
   } catch (err) {
-    console.error("Server Error:", err);
     return res.status(500).json({
       success: false,
       error: err.message
