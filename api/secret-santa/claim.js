@@ -35,12 +35,14 @@ export default async function handler(req, res) {
       variables: {
         input: {
           lineItems: [
-            {
-              title: "🎅 Secret Santa Gift",
-              price: PRICE,
-              quantity: 1
-            }
-          ],
+  {
+    title: "🎅 Secret Santa Gift",
+    price: PRICE,
+    quantity: 1
+  }
+],
+currencyCode: INR,
+
           note: "Secret Santa 2025 – Threads n Molds"
         }
       }
