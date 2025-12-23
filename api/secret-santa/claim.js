@@ -32,20 +32,20 @@ export default async function handler(req, res) {
 
     const body = {
       query: mutation,
-      variables: {
-        input: {
-          lineItems: [
-  {
-    title: "🎅 Secret Santa Gift",
-    price: PRICE,
-    quantity: 1
-  }
-],
-currencyCode: INR,
-
-          note: "Secret Santa 2025 – Threads n Molds"
-        }
+     variables: {
+  input: {
+    lineItems: [
+      {
+        title: "🎅 Secret Santa Gift",
+        price: PRICE,
+        quantity: 1
       }
+    ],
+    currencyCode: "INR",
+    note: "Secret Santa 2025 – Threads n Molds"
+  }
+}
+
     };
 
     const response = await fetch(
