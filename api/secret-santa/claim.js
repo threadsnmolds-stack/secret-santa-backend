@@ -1,10 +1,10 @@
 export default async function handler(req, res) {
   // ✅ CORS HEADERS (MOST IMPORTANT)
   res.setHeader("Access-Control-Allow-Origin", "https://www.threadsnmolds.com");
-  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  // ✅ Handle preflight request
+  // Handle preflight
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
@@ -22,14 +22,13 @@ export default async function handler(req, res) {
       throw new Error("Missing Shopify environment variables");
     }
 
-    const mutation = `
-      mutation DraftOrderCreate($input: DraftOrderInput!) {
+    const query = `
+      mutation draftOrderCreate($input: DraftOrderInput!) {
         draftOrderCreate(input: $input) {
           draftOrder {
             invoiceUrl
           }
           userErrors {
-            field
             message
           }
         }
@@ -40,7 +39,7 @@ export default async function handler(req, res) {
       input: {
         lineItems: [
           {
-            title: "🎁 Secret Santa Gift",
+            title: "🎅 Secret Santa Gift",
             quantity: 1,
             originalUnitPrice: PRICE
           }
@@ -50,24 +49,24 @@ export default async function handler(req, res) {
     };
 
     const response = await fetch(
-      `https://${SHOP}/admin/api/2024-10/graphql.json`,
+      `https://${SHOP}/admin/api/2024-01/graphql.json`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-Shopify-Access-Token": TOKEN
         },
-        body: JSON.stringify({ query: mutation, variables })
+        body: JSON.stringify({ query, variables })
       }
     );
 
-    const data = await response.json();
+    const json = await response.json();
 
     const invoiceUrl =
-      data?.data?.draftOrderCreate?.draftOrder?.invoiceUrl;
+      json?.data?.draftOrderCreate?.draftOrder?.invoiceUrl;
 
     if (!invoiceUrl) {
-      throw new Error("Draft order creation failed");
+      throw new Error("Failed to create draft order");
     }
 
     return res.status(200).json({
