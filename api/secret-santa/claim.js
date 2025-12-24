@@ -1,13 +1,14 @@
 export default async function handler(req, res) {
-  // ✅ CORS HEADERS (CRITICAL)
-  res.setHeader("Access-Control-Allow-Origin", "https://www.threadsnmolds.com");
-  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+ // ✅ CORS — allow Shopify store
+res.setHeader("Access-Control-Allow-Origin", "https://www.threadsnmolds.com");
+res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
+res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  // ✅ Handle preflight request
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
+// ✅ Preflight
+if (req.method === "OPTIONS") {
+  return res.status(200).end();
+}
+
 
   try {
     if (req.method !== "GET") {
