@@ -1,14 +1,13 @@
 export default async function handler(req, res) {
- // ✅ CORS — allow Shopify store
-res.setHeader("Access-Control-Allow-Origin", "https://www.threadsnmolds.com");
-res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
-res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  // ✅ CORS HEADERS (CRITICAL)
+  res.setHeader("Access-Control-Allow-Origin", "https://www.threadsnmolds.com");
+  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-// ✅ Preflight
-if (req.method === "OPTIONS") {
-  return res.status(200).end();
-}
-
+  // Handle preflight request
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
 
   try {
     if (req.method !== "GET") {
@@ -24,7 +23,7 @@ if (req.method === "OPTIONS") {
     }
 
     const mutation = `
-      mutation DraftOrderCreate($input: DraftOrderInput!) {
+      mutation draftOrderCreate($input: DraftOrderInput!) {
         draftOrderCreate(input: $input) {
           draftOrder {
             id
@@ -47,7 +46,7 @@ if (req.method === "OPTIONS") {
             originalUnitPrice: PRICE
           }
         ],
-        note: "Secret Santa 2025 - Threads n Molds"
+        note: "Secret Santa 2025 – Threads n Molds"
       }
     };
 
@@ -63,26 +62,25 @@ if (req.method === "OPTIONS") {
       }
     );
 
-    const data = await response.json();
+    const json = await response.json();
 
-    if (data.errors || data.data.draftOrderCreate.userErrors.length) {
-      return res.status(400).json({
-        success: false,
-        error: data.errors || data.data.draftOrderCreate.userErrors
-      });
+    const draftOrder = json?.data?.draftOrderCreate?.draftOrder;
+    const errors = json?.data?.draftOrderCreate?.userErrors;
+
+    if (errors && errors.length) {
+      throw new Error(errors[0].message);
     }
 
     return res.status(200).json({
       success: true,
-      checkout_url: data.data.draftOrderCreate.draftOrder.invoiceUrl,
+      checkout_url: draftOrder.invoiceUrl,
       price: PRICE
     });
 
   } catch (err) {
     return res.status(500).json({
       success: false,
-      error: err.message
+      error: err.message || "Santa got stuck in traffic 🎄"
     });
   }
 }
-
